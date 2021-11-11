@@ -98,7 +98,7 @@ def main():
         print("\n\n")
         print(45*space, now)
         print("\n\n")
-        print(5*space,"Worker",17*space,"Hashrate", 4*space, "1h", 9*space,"6h", 9*space, "24h", 6*space,"Total Hashes\n")
+        print(5*space,"Worker",16*space,"Hashrate", 6*space, "1h", 9*space,"6h", 9*space, "24h", 8*space,"Total Hashes\n")
         try: 
             req = requests.get(api_url)
             json = req.json()
@@ -141,8 +141,8 @@ def main():
                                                                                  5*space,round(float(w['hashrate_6h']),2),
                                                                                  5*space,
                                                                                  round(float(w['hashrate_24h']),2),
-                                                                                 5*space,
-                                                                                 "{:,}".format(w['hashes'])))
+                                                                                 3*space,
+                                                                                 "{:>15,}".format(w['hashes'])))
                                                   
                         if w['hashrate_1h'] == 0:
                             print("\n\n %s IS OFFLINE!" % w['name'])
