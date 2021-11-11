@@ -53,6 +53,6 @@ You can edit **config.json** if you feel like it to change any settings. It's a 
 
 # Donations
 
-###DERO
+### DERO
 
 `dERoNwMa3wEdMgG8bswFVzcjTqcBSicwGT8YQAeYkYrJ2ZAVZhp5uDqYayeaCehTUn8yWUmjnzxX95KY6pK6gSuj4qDevpJnDa`
