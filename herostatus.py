@@ -3,11 +3,11 @@
 import requests
 import json
 import pygame
-from datetime import datetime
+from datetime import datetime, timedelta
 from os import system, path, getcwd
 from time import sleep
 import argparse
-
+from time import time
 
 
 space=' '
@@ -28,8 +28,8 @@ def herominers_logo():
     with open('logo.uni') as logoFile:
         logo = logoFile.readlines()
     for line in logo:
-        print(32*space,line, end='')
-    print(44*space, "HEROMINERS")
+        print(48*space,line, end='')
+    print(60*space, "HEROMINERS")
     
     
 def play_alarm(alarm):
@@ -90,15 +90,17 @@ def main():
     wait_time = int(configs["refresh"])  
     
     while True:
-        now = datetime.now()
+        #now = datetime.now()
+        epoch_time = time()
+        now = datetime.fromtimestamp(int(epoch_time))
         now = now.strftime("%H:%M:%S")
         system('cls||clear')
         print("\n")
         herominers_logo()
         print("\n\n")
-        print(45*space, now)
+        print(61*space, now)
         print("\n\n")
-        print(5*space,"Worker",16*space,"Hashrate", 6*space, "1h", 9*space,"6h", 9*space, "24h", 8*space,"Total Hashes\n")
+        print(5*space,"Worker",16*space,"Hashrate", 6*space, "1h", 9*space,"6h", 9*space, "24h", 8*space,"Total Hashes", 8*space, "Last Share\n")
         try: 
             req = requests.get(api_url)
             json = req.json()
@@ -132,9 +134,12 @@ def main():
                         else:
                             hr_len = 0
                          
-                            
-                            
-                        print("%s %s %5.2f %s %5.2f %s %5.2f %s %5.2f %s %10s" %(w['name'],(num_of_spaces + hr_len)*space,
+                        Lshare_epoch = w['lastShare']
+                        lastshare = float(epoch_time) - float(Lshare_epoch)
+                        lastshare = timedelta(seconds=lastshare)
+                        lastshareminutes = int(lastshare.seconds / 60)
+                        
+                        print("%s %s %5.2f %s %5.2f %s %5.2f %s %5.2f %s %10s %s %3s minutes ago" %(w['name'],(num_of_spaces + hr_len)*space,
                                                                                  w['hashrate'],
                                                                                  5*space, 
                                                                                  round(float(w['hashrate_1h']),2),
@@ -142,10 +147,12 @@ def main():
                                                                                  5*space,
                                                                                  round(float(w['hashrate_24h']),2),
                                                                                  3*space,
-                                                                                 "{:>15,}".format(w['hashes'])))
+                                                                                 "{:>15,}".format(w['hashes']),
+                                                                                 5*space,
+                                                                                 str(lastshareminutes)))
                                                   
                         if w['hashrate_1h'] == 0:
-                            print("\n\n %s IS OFFLINE!" % w['name'])
+                            print("\n %s IS OFFLINE!\n" % w['name'])
                             play_alarm(soundfx)
                             
             cur_hr = json['stats']['hashrate']
@@ -161,7 +168,7 @@ def main():
             
             
             num_of_spaces = maxlen - len('Total:') + 10
-            print(dash*97)
+            print(dash*122)
             print("\nTotal: %s %5.2f %s %5.2f %s %5.2f %s %5.2f %s %10s" %(num_of_spaces*space,
                                                                            round(float(cur_hr),2),
                                                                            4*space,
@@ -173,7 +180,7 @@ def main():
                                                                            4*space,
                                                                            "{:,}".format(int(total_hashes))))
             
-            print(dash*97)
+            print(dash*122)
             text = 'Blocks Found:'
             num_of_spaces = len('Paid (24 hours):') - len(text) + 11                    
             print("\nBlocks Found: %s %s" % (num_of_spaces*space,blocks_found))
