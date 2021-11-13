@@ -22,14 +22,14 @@ alarms = ['sounds/burglaralarm.wav',
           'sounds/sirenalarm.wav',
           'sounds/strongbadalarm.wav']
 
-dero_satoshi = 1000000000000
+satoshi = 100000000000
 
 def herominers_logo():
     with open('logo.uni') as logoFile:
         logo = logoFile.readlines()
     for line in logo:
-        print(48*space,line, end='')
-    print(60*space, "HEROMINERS")
+        print(42*space,line, end='')
+    print(54*space, "HEROMINERS")
     
     
 def play_alarm(alarm):
@@ -60,6 +60,29 @@ def startup_procedure():
         json_file.close()
         return configs
 
+def ComputeHashrate(lnphr, pool_hashrate):
+    
+    if lnphr <= 3:
+        pool_hashrate = str(pool_hashrate) + " H/s"
+    elif lnphr  > 3 and lnphr <= 6:
+        pool_hashrate = str(float(int(pool_hashrate) / 1000)) + " Kh/s"
+    elif lnphr >=7 and lnphr <= 9: 
+        pool_hashrate = str(float(int(pool_hashrate) / 1000000)) + " Mh/s"
+    else:
+        pool_hashrate = str(float(int(pool_hashrate) / 1000000000)) + " Gh/s"
+        
+    return pool_hashrate
+
+def PrintFooter(longestHeader, ft, fd):
+    
+    print("\n")
+    
+    for text,data in zip(ft,fd):
+        num_of_spaces = len(longestHeader) - len(text) + 11
+        print("%s %s %s" % (text, num_of_spaces*space,data))
+                      
+
+
 def main():
     
     parser = argparse.ArgumentParser(description="Herominers Crypto Status and Alarm Notifier")
@@ -87,24 +110,54 @@ def main():
     
     configs = startup_procedure()
     api_url = "https://%s.herominers.com/api/stats_address?address=%s" % (configs['crypto'], configs['address'])
+    live_stats_url = "https://%s.herominers.com/api/live_stats?address=%s" % (configs['crypto'], configs['address'])
     wait_time = int(configs["refresh"])  
     
     while True:
         #now = datetime.now()
         epoch_time = time()
         now = datetime.fromtimestamp(int(epoch_time))
-        now = now.strftime("%H:%M:%S")
+        now_date = now.strftime("%a, %b %d %Y")
+        now_time = now.strftime("%I:%M:%S %p")
         system('cls||clear')
         print("\n")
         herominers_logo()
-        print("\n\n")
-        print(61*space, now)
-        print("\n\n")
-        print(5*space,"Worker",16*space,"Hashrate", 6*space, "1h", 9*space,"6h", 9*space, "24h", 8*space,"Total Hashes", 8*space, "Last Share\n")
+        print("\n")
+        print(52*space, now_date, "\n",54*space,now_time)
+        print("\n")
         try: 
             req = requests.get(api_url)
+            req_live_stats = requests.get(live_stats_url)
             json = req.json()
+            live_stats_json = req_live_stats.json()
             
+            satoshi = float(live_stats_json['config']['coinUnits'])
+            fee = float(float(live_stats_json['config']['transferFee']) / satoshi)
+            
+            no_of_miners = live_stats_json['pool']['miners']
+            no_of_workers = live_stats_json['pool']['workers']
+            pool_hashrate = live_stats_json['pool']['hashrate']
+            pool_roundscore = live_stats_json['pool']['roundScore']
+            miner_roundscore = live_stats_json['miner']['roundScore']
+            avgBlockReward = float(live_stats_json['pool']['averageReward']) / satoshi
+            cryptoPriceUSD = round(float(live_stats_json['pool']['price']['usd']),3)
+            cryptoPriceBTC = round(float(live_stats_json['pool']['price']['btc']),8)
+            
+            lnphr = len(str(pool_hashrate))
+            
+            pool_hashrate = ComputeHashrate(lnphr, pool_hashrate)
+            roundContribution = str(round(100*(float(miner_roundscore) / float(pool_roundscore)),4)) + '%'
+
+            print(dash*55, "Pool Stats", dash*55)
+            print("Miners: %s (%s)\tHashrate: %s\t\tFee: %s\t Avg. Block Reward: %s" % (no_of_miners, no_of_workers, pool_hashrate, fee, avgBlockReward))
+            print("%s Price: $%s USD, %s BTC" % (configs['crypto'].upper(), cryptoPriceUSD, cryptoPriceBTC))  
+            print(dash*54, "Miner Stats", dash*54)
+            
+            
+            
+    
+            print(5*space,"Worker",16*space,"Hashrate", 6*space, "1h", 9*space,"6h", 9*space, "24h", 8*space,"Total Hashes", 8*space, "Last Share\n")
+
             Workers = json['workers']
             
             WorkersByName = {}
@@ -161,10 +214,10 @@ def main():
             dayhr_hr = json['stats']['hashrate_24h']
             total_hashes = json['stats']['hashes']
             blocks_found = json['stats']['blocksFound']
-            balance = round(float(float(json['stats']['balance']) / dero_satoshi),13)
-            paid = round(float(float(json['stats']['paid']) / dero_satoshi),13)
-            payment_7d = round(float(float(json['stats']['payments_7d']) / dero_satoshi),132)
-            payment_24hr = round(float(float(json['stats']['payments_24h']) / dero_satoshi), 13)
+            balance = round(float(float(json['stats']['balance']) / satoshi),13)
+            paid = round(float(float(json['stats']['paid']) / satoshi),13)
+            payment_7d = round(float(float(json['stats']['payments_7d']) / satoshi),13)
+            payment_24hr = round(float(float(json['stats']['payments_24h']) / satoshi), 13)
             
             
             num_of_spaces = maxlen - len('Total:') + 10
@@ -181,20 +234,15 @@ def main():
                                                                            "{:,}".format(int(total_hashes))))
             
             print(dash*122)
-            text = 'Blocks Found:'
-            num_of_spaces = len('Paid (24 hours):') - len(text) + 11                    
-            print("\nBlocks Found: %s %s" % (num_of_spaces*space,blocks_found))
-            text = 'Balance:'
-            num_of_spaces = len('Paid (24 hours):') - len(text) + 10                
-            print("Balance: %s %15.12f" % (num_of_spaces*space,balance))
-            text = 'Paid (1 week):'
-            num_of_spaces = len('Paid (24 hours):') - len(text) + 10
-            print("Paid (1 week): %s %15.12f" % (num_of_spaces*space,payment_7d))
-            num_of_spaces = 10
-            print("Paid (24 hours): %s %15.12f" % (num_of_spaces*space,payment_24hr))
-            text = 'Total Paid:'
-            num_of_spaces = len('Paid (24 hours):') - len(text) + 10
-            print("Total Paid: %s %15.12f" % (num_of_spaces*space,paid))
+            longestHeader = "Round Contribution:"
+            footerText = ['Blocks Found:', longestHeader, 'Balance:',
+                          'Paid (24 hours):','Paid (1 week):','Total Paid:',
+                          ]
+            footerData = [blocks_found, roundContribution, balance,
+                          payment_24hr, payment_7d,  paid]
+            
+            PrintFooter(longestHeader, footerText,footerData) 
+             
         except Exception as e:
             print(str(e))
             print("CONNECTION ERROR... Retrying in %s(s)" % wait_time)
