@@ -110,7 +110,7 @@ def main():
     
     configs = startup_procedure()
     api_url = "https://%s.herominers.com/api/stats_address?address=%s" % (configs['crypto'], configs['address'])
-    live_stats_url = "https://%s.herominers.com/api/live_stats?address=%s" % (configs['crypto'], configs['address'])
+    live_stats_url = "https://%s.herominers.com/api/live_stats?address=%s&longpoll=false" % (configs['crypto'], configs['address'])
     wait_time = int(configs["refresh"])  
     
     while True:
@@ -157,6 +157,7 @@ def main():
             
     
             print(5*space,"Worker",16*space,"Hashrate", 6*space, "1h", 9*space,"6h", 9*space, "24h", 8*space,"Total Hashes", 8*space, "Last Share\n")
+            
 
             Workers = json['workers']
             
@@ -192,6 +193,7 @@ def main():
                         lastshare = timedelta(seconds=lastshare)
                         lastshareminutes = int(lastshare.seconds / 60)
                         
+                        '''
                         print("%s %s %5.2f %s %5.2f %s %5.2f %s %5.2f %s %10s %s %3s minutes ago" %(w['name'],(num_of_spaces + hr_len)*space,
                                                                                  w['hashrate'],
                                                                                  5*space, 
@@ -203,6 +205,14 @@ def main():
                                                                                  "{:>15,}".format(w['hashes']),
                                                                                  5*space,
                                                                                  str(lastshareminutes)))
+                        '''
+                        print("{0:<30}{1:>7.2f}{2:>13.2f}{3:>13.2f}{4:>13.2f}{5:>21,}{6:>22}".format(w['name'],
+                                                                                                     w['hashrate'],
+                                                                                                     w['hashrate_1h'],
+                                                                                                     w['hashrate_6h'],
+                                                                                                     w['hashrate_24h'],
+                                                                                                     w['hashes'],
+                                                                                                     str(lastshareminutes) + " minutes ago"))
                                                   
                         if w['hashrate_1h'] == 0:
                             print("\n %s IS OFFLINE!\n" % w['name'])
