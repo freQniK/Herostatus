@@ -132,7 +132,7 @@ def main():
             live_stats_json = req_live_stats.json()
             
             satoshi = float(live_stats_json['config']['coinUnits'])
-            fee = float(float(live_stats_json['config']['transferFee']) / satoshi)
+            fee = format(float(float(live_stats_json['config']['transferFee']) / satoshi),'.8f')
             
             no_of_miners = live_stats_json['pool']['miners']
             no_of_workers = live_stats_json['pool']['workers']
@@ -141,7 +141,7 @@ def main():
             miner_roundscore = live_stats_json['miner']['roundScore']
             avgBlockReward = float(live_stats_json['pool']['averageReward']) / satoshi
             cryptoPriceUSD = round(float(live_stats_json['pool']['price']['usd']),3)
-            cryptoPriceBTC = round(float(live_stats_json['pool']['price']['btc']),8)
+            cryptoPriceBTC =format(float(live_stats_json['pool']['price']['btc']),'.8f')
             
             lnphr = len(str(pool_hashrate))
             
@@ -223,11 +223,27 @@ def main():
             sixhr_hr = json['stats']['hashrate_6h']
             dayhr_hr = json['stats']['hashrate_24h']
             total_hashes = json['stats']['hashes']
-            blocks_found = json['stats']['blocksFound']
-            balance = round(float(float(json['stats']['balance']) / satoshi),13)
-            paid = round(float(float(json['stats']['paid']) / satoshi),13)
-            payment_7d = round(float(float(json['stats']['payments_7d']) / satoshi),13)
-            payment_24hr = round(float(float(json['stats']['payments_24h']) / satoshi), 13)
+            
+            try:
+                blocks_found = json['stats']['blocksFound']
+            except:
+                blocks_found = 0
+            try:     
+                balance = round(float(float(json['stats']['balance']) / satoshi),13)
+            except:
+                balance = 0.00
+            try: 
+                paid = round(float(float(json['stats']['paid']) / satoshi),13)
+            except:
+                paid = 0.00
+            try: 
+                payment_7d = round(float(float(json['stats']['payments_7d']) / satoshi),13)
+            except:
+                payment_7d = 0.00
+            try: 
+                payment_24hr = round(float(float(json['stats']['payments_24h']) / satoshi), 13)
+            except:
+                payment_24h = 0.00
             
             
             num_of_spaces = maxlen - len('Total:') + 10

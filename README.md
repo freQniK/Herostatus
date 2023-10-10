@@ -48,11 +48,46 @@ You can edit **config.json** if you feel like it to change any settings. It's a 
 
 # Screenshot
 
-
-![](img/scrsht.png)
+![Screenshot](img/scrsht.png)
 
 # Donations
+Coding is a lot of work. Support your FOSS developers with a small contribution to keep them coding. Crypto is the easiest method to donate to your favorite FOSS project. 
 
-### DERO
+## Bitcoin
 
-`dERoNwMa3wEdMgG8bswFVzcjTqcBSicwGT8YQAeYkYrJ2ZAVZhp5uDqYayeaCehTUn8yWUmjnzxX95KY6pK6gSuj4qDevpJnDa`
+```
+bc1qjzrrqlk7t2pedfrnp25xqxru8nq3plv7ghkvag
+```
+
+![BTC](img/BTC.png)
+
+
+## DERO
+```
+dero1qyxctkgzee00jh3md4etc8kxkr8x4hh7cckezrhn7de39kj4xaf9xqqa6xeta
+```
+![DERO](img/DERO.png)
+
+## Monero
+
+```
+82sirs3qe2XCvytxCnkVyS5q6v18MN8vHgpU1hZECmnKQzzcVNB5vXiDMz1Ktdp4pgKKjK2vsWdGABN8AAtHbFAaDg7A63t
+```
+
+![XMR](img/XMR.png)
+
+## Pirate Chain
+
+```
+zs1uknhdwh306h3r08l3vvd29jz0a0ym3tpxtad6j3en82g24hnzpuknuwt25r7vpsh86ly23fgjwp
+```
+
+![ARRR](img/ARRR.png)
+
+## Zephyr
+```
+ZEPHs8jnJx1bKL6TdmDSfUZTMuWeFkVhye5JUg8g7QYUBizGB6u5scJixYPqLo4EQkCbjPKKxtpQJHHCEFf3qAP2QKCZBF9judW
+```
+
+![ZEPH](img/ZEPH.png)
+
