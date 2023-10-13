@@ -4,25 +4,32 @@ import requests
 import json
 import pygame
 from datetime import datetime, timedelta
-from os import system, path, getcwd
+from os import system, path, getcwd,environ,mkdir
 from time import sleep
 import argparse
 from time import time
+import pkg_resources
+import shutil
 
+USER      = environ['SUDO_USER'] if 'SUDO_USER' in environ else environ['USER']
+BASEDIR   = path.join(path.expanduser('~' + USER), '.herostatus')
+SOUNDDIR  = path.join(BASEDIR, 'sounds')
 
 space=' '
 dash='-'
 
 wait_time = 600 #seconds
 
-alarms = ['sounds/burglaralarm.wav',
-          'sounds/caralarm.wav',
-          'sounds/hiphopalarm.wav',
-          'sounds/nuclearalarm.wav',
-          'sounds/sirenalarm.wav',
-          'sounds/strongbadalarm.wav']
+alarms = [path.join(SOUNDDIR,'burglaralarm.wav'),
+          path.join(SOUNDDIR,'caralarm.wav'),
+          path.join(SOUNDDIR,'hiphopalarm.wav'),
+          path.join(SOUNDDIR,'nuclearalarm.wav'),
+          path.join(SOUNDDIR,'sirenalarm.wav'),
+          path.join(SOUNDDIR,'strongbadalarm.wav')]
 
 satoshi = 100000000000
+
+VERSION = 'Herostatus v0.3.0'
 
 def herominers_logo():
     with open('logo.uni') as logoFile:
@@ -30,6 +37,7 @@ def herominers_logo():
     for line in logo:
         print(42*space,line, end='')
     print(54*space, "HEROMINERS")
+    print(50*space, VERSION)
     
     
 def play_alarm(alarm):
@@ -39,10 +47,28 @@ def play_alarm(alarm):
 
 
 def startup_procedure():
-    if path.exists("config.json"):
-        with open("config.json", "r") as configFile:
+    if not path.isdir(BASEDIR):
+        mkdir(BASEDIR)
+        
+    
+    if not path.isdir(path.join(BASEDIR,"sounds")):
+        sounds = []
+        mkdir(path.join(BASEDIR,"sounds"))
+        sounds.append(pkg_resources.resource_filename(__name__, path.join('sounds', 'burglaralarm.wav')))
+        sounds.append(pkg_resources.resource_filename(__name__, path.join('sounds', 'caralarm.wav')))
+        sounds.append(pkg_resources.resource_filename(__name__, path.join('sounds', 'hiphopalarm.wav')))
+        sounds.append(pkg_resources.resource_filename(__name__, path.join('sounds', 'nuclearalarm.wav')))
+        sounds.append(pkg_resources.resource_filename(__name__, path.join('sounds', 'sirenalarm.wav')))
+        sounds.append(pkg_resources.resource_filename(__name__, path.join('sounds', 'strongbadalarm.wav')))
+        
+        for s in sounds:
+            shutil.copy(s,SOUNDDIR)
+
+    if path.exists(path.join(BASEDIR, "config.json")):
+        with open(path.join(BASEDIR,"config.json"), "r") as configFile:
             configJSON = configFile.read()
         return json.loads(configJSON)
+            
     else:
         configs = {}  
         crypto = input("\nPlease enter the crypto you are mining (fullname i.e., dero, monero, etc.): ")
@@ -55,7 +81,7 @@ def startup_procedure():
         
         configJSON = json.dumps(configs)
         
-        json_file = open("config.json", "w")
+        json_file = open(path.join(BASEDIR,"config.json"), "w")
         json_file.write(configJSON)
         json_file.close()
         return configs
@@ -65,11 +91,11 @@ def ComputeHashrate(lnphr, pool_hashrate):
     if lnphr <= 3:
         pool_hashrate = str(pool_hashrate) + " H/s"
     elif lnphr  > 3 and lnphr <= 6:
-        pool_hashrate = str(float(int(pool_hashrate) / 1000)) + " Kh/s"
+        pool_hashrate = str(round(float(int(pool_hashrate) / 1000),2)) + " Kh/s"
     elif lnphr >=7 and lnphr <= 9: 
-        pool_hashrate = str(float(int(pool_hashrate) / 1000000)) + " Mh/s"
+        pool_hashrate = str(round(float(int(pool_hashrate) / 1000000),2)) + " Mh/s"
     else:
-        pool_hashrate = str(float(int(pool_hashrate) / 1000000000)) + " Gh/s"
+        pool_hashrate = str(round(float(int(pool_hashrate) / 1000000000),2)) + " Gh/s"
         
     return pool_hashrate
 
@@ -92,6 +118,7 @@ def main():
                                                                   4. Nuclear Alarm (60s) \
                                                                   5. Siren Alarm (16s) \
                                                                   6. Strong Bad Alarm (Default) (17s)", metavar='sound')
+    parser.add_argument('-t', '--times', help="Number of times to sound the alarm before it becomes annoying", metavar="times")
     
     cwd = getcwd()
     args = parser.parse_args()
@@ -105,13 +132,19 @@ def main():
     else:
         soundfx = path.join(cwd,alarms[5])
         
+    if args.times:
+        ALARM_TIMES = int(args.times)
+    else:
+        ALARM_TIMES = 1
     
 
     
     configs = startup_procedure()
     api_url = "https://%s.herominers.com/api/stats_address?address=%s" % (configs['crypto'], configs['address'])
     live_stats_url = "https://%s.herominers.com/api/live_stats?address=%s&longpoll=false" % (configs['crypto'], configs['address'])
-    wait_time = int(configs["refresh"])  
+    wait_time = int(configs["refresh"])
+      
+    worker_offline = {}
     
     while True:
         #now = datetime.now()
@@ -178,6 +211,12 @@ def main():
             for key in sWorkers.keys():
                 for w in Workers:
                     if key ==  w['name']:
+                        try:
+                            if worker_offline[w['name']] > 0:
+                                pass
+                        except:
+                            worker_offline[w['name']] = 0
+                            
                         nlen = len(key)
                         num_of_spaces = maxlen - nlen + 10
                         # play alarm and send text message
@@ -192,20 +231,7 @@ def main():
                         lastshare = float(epoch_time) - float(Lshare_epoch)
                         lastshare = timedelta(seconds=lastshare)
                         lastshareminutes = int(lastshare.seconds / 60)
-                        
-                        '''
-                        print("%s %s %5.2f %s %5.2f %s %5.2f %s %5.2f %s %10s %s %3s minutes ago" %(w['name'],(num_of_spaces + hr_len)*space,
-                                                                                 w['hashrate'],
-                                                                                 5*space, 
-                                                                                 round(float(w['hashrate_1h']),2),
-                                                                                 5*space,round(float(w['hashrate_6h']),2),
-                                                                                 5*space,
-                                                                                 round(float(w['hashrate_24h']),2),
-                                                                                 3*space,
-                                                                                 "{:>15,}".format(w['hashes']),
-                                                                                 5*space,
-                                                                                 str(lastshareminutes)))
-                        '''
+
                         print("{0:<30}{1:>7.2f}{2:>13.2f}{3:>13.2f}{4:>13.2f}{5:>21,}{6:>22}".format(w['name'],
                                                                                                      w['hashrate'],
                                                                                                      w['hashrate_1h'],
@@ -216,12 +242,18 @@ def main():
                                                   
                         if w['hashrate_1h'] == 0:
                             print("\n %s IS OFFLINE!\n" % w['name'])
-                            play_alarm(soundfx)
+                            if worker_offline[w['name']] < ALARM_TIMES:
+                                play_alarm(soundfx)
+                                worker_offline[w['name']] += 1
+                        else:
+                            for k in worker_offline.keys():
+                                if w['name'] == k:
+                                    worker_offline[w['name']] = 0
                             
-            cur_hr = json['stats']['hashrate']
-            onehr_hr = json['stats']['hashrate_1h']
-            sixhr_hr = json['stats']['hashrate_6h']
-            dayhr_hr = json['stats']['hashrate_24h']
+            cur_hr = ComputeHashrate(len(str(int(json['stats']['hashrate']))),json['stats']['hashrate'])
+            onehr_hr = ComputeHashrate(len(str(int(json['stats']['hashrate_1h']))),json['stats']['hashrate_1h'])
+            sixhr_hr = ComputeHashrate(len(str(int(json['stats']['hashrate_6h']))), json['stats']['hashrate_6h'])
+            dayhr_hr = ComputeHashrate(len(str(int(json['stats']['hashrate_24h']))), json['stats']['hashrate_24h'])
             total_hashes = json['stats']['hashes']
             
             try:
@@ -243,11 +275,12 @@ def main():
             try: 
                 payment_24hr = round(float(float(json['stats']['payments_24h']) / satoshi), 13)
             except:
-                payment_24h = 0.00
+                payment_24hr = 0.00
             
             
             num_of_spaces = maxlen - len('Total:') + 10
             print(dash*122)
+            '''
             print("\nTotal: %s %5.2f %s %5.2f %s %5.2f %s %5.2f %s %10s" %(num_of_spaces*space,
                                                                            round(float(cur_hr),2),
                                                                            4*space,
@@ -257,6 +290,17 @@ def main():
                                                                            4*space,
                                                                            round(float(dayhr_hr),2),
                                                                            4*space,
+                                                                           "{:,}".format(int(total_hashes))))
+            '''
+            print("\nTotal: %s %s %s %s %s %s %s %s %s %10s" %(num_of_spaces*space,
+                                                                           cur_hr,
+                                                                           2*space,
+                                                                           onehr_hr,
+                                                                           2*space,
+                                                                           sixhr_hr,
+                                                                           2*space,
+                                                                           dayhr_hr,
+                                                                           2*space,
                                                                            "{:,}".format(int(total_hashes))))
             
             print(dash*122)

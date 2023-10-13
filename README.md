@@ -20,29 +20,44 @@ sudo apt-get install portaudio19-dev python3-pyaudio
 
 ## Installation
 
-`git https://github.com/freQniK/Herostatus`
+Via pip:
+
+```shell
+pip3 install herostatus
+```
+
+Via GitHub
+
+```shell
+git clone https://github.com/freQniK/Herostatus`
+cd Herostatus
+python3 herostatus.py
+```
 
 Install the above requirements and run *herostatus.py* with your python 3 interpreter. 
 
 # Usage
-`$ python3 herostatus.py`
-
- ```
- usage: herostatus.py [-h] [-s sound]
+```shell
+(hero) freQniK>herostatus -h
+pygame 2.5.2 (SDL 2.28.2, Python 3.8.10)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+usage: herostatus [-h] [-s sound] [-t times]
 
 Herominers Crypto Status and Alarm Notifier
 
 optional arguments:
   -h, --help            show this help message and exit
   -s sound, --sound sound
-                        Choose Your Alarm: 1. Burglar Alarm (30s) 2. Car Alarm (33s) 3. Hip Hop Alarm
-                        (10s) 4. Nuclear Alarm (60s) 5. Siren Alarm (16s) 6. Strong Bad Alarm (Default)
-                        (17s)
+                        Choose Your Alarm: 1. Burglar Alarm (30s) 2. Car Alarm (33s) 3. Hip Hop Alarm (10s) 4. Nuclear Alarm (60s) 5. Siren Alarm
+                        (16s) 6. Strong Bad Alarm (Default) (17s)
+  -t times, --times times
+                        Number of times to sound the alarm before it becomes annoying
+
 ```
 
-When you first run hersostatus it will prompt for the crypto you are mining. Be sure to enter the full name of the crypto, i.e., monero, dero, ergo, etc.
+When you first run hersostatus it will prompt for the crypto you are mining. Be sure to enter the full name of the crypto, i.e., monero, dero, ergo, zephyr, etc.
 
-It will also prompt you for your wallet address for your miners. Finally, it will prompt you for a refresh interval. Choose wisely. These settings are stored in **config.json** and reused upon restart. 
+It will also prompt you for your wallet address for your miners. Finally, it will prompt you for a refresh interval. Choose wisely. These settings are stored in **~/.herostatus/config.json** and reused upon restart. 
 
 You can edit **config.json** if you feel like it to change any settings. It's a simple file. 
 
