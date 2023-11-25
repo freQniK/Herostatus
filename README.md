@@ -23,7 +23,7 @@ sudo apt-get install portaudio19-dev python3-pyaudio
 Via pip:
 
 ```shell
-pip3 install herostatus
+sudo apt-get install portaudio19-dev python3-pyaudio && pip3 install Herostatus
 ```
 
 Via GitHub
@@ -31,7 +31,7 @@ Via GitHub
 ```shell
 git clone https://github.com/freQniK/Herostatus`
 cd Herostatus
-python3 herostatus.py
+pip install -e .
 ```
 
 Install the above requirements and run *herostatus.py* with your python 3 interpreter. 
