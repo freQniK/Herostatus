@@ -29,10 +29,10 @@ alarms = [path.join(SOUNDDIR,'burglaralarm.wav'),
 
 satoshi = 100000000000
 
-VERSION = 'Herostatus v0.3.0'
+VERSION = 'Herostatus v0.3.2'
 
 def herominers_logo():
-    with open('logo.uni') as logoFile:
+    with open(path.join(BASEDIR,'logo.uni')) as logoFile:
         logo = logoFile.readlines()
     for line in logo:
         print(42*space,line, end='')
@@ -63,7 +63,11 @@ def startup_procedure():
         
         for s in sounds:
             shutil.copy(s,SOUNDDIR)
-
+            
+            
+    if not path.exists(path.join(BASEDIR, 'logi.uni')):
+        shutil.copy(pkg_resources.resource_filename(__name__, 'logo.uni'), BASEDIR)
+        
     if path.exists(path.join(BASEDIR, "config.json")):
         with open(path.join(BASEDIR,"config.json"), "r") as configFile:
             configJSON = configFile.read()
@@ -159,14 +163,29 @@ def main():
         print(52*space, now_date, "\n",54*space,now_time)
         print("\n")
         try: 
-            req = requests.get(api_url)
-            req_live_stats = requests.get(live_stats_url)
-            json = req.json()
-            live_stats_json = req_live_stats.json()
+            try: 
+                req = requests.get(api_url)
+            except: 
+                print("COULD NOT REQUEST FROM API")
+                sleep(wait_time)
+                continue
+            try:
+                req_live_stats = requests.get(live_stats_url)
+            except: 
+                print("COULD NOT REQUEST FROM API - LIVE STATS")
+                sleep(wait_time)
+                continue
+            try:
+                json = req.json()
+                live_stats_json = req_live_stats.json()
+            except:
+                print("COULD NOT GET JSON")
+                sleep(wait_time)
+                continue
+            
             
             satoshi = float(live_stats_json['config']['coinUnits'])
             fee = format(float(float(live_stats_json['config']['transferFee']) / satoshi),'.8f')
-            
             no_of_miners = live_stats_json['pool']['miners']
             no_of_workers = live_stats_json['pool']['workers']
             pool_hashrate = live_stats_json['pool']['hashrate']
@@ -175,7 +194,6 @@ def main():
             avgBlockReward = float(live_stats_json['pool']['averageReward']) / satoshi
             cryptoPriceUSD = round(float(live_stats_json['pool']['price']['usd']),3)
             cryptoPriceBTC =format(float(live_stats_json['pool']['price']['btc']),'.8f')
-            
             lnphr = len(str(pool_hashrate))
             
             pool_hashrate = ComputeHashrate(lnphr, pool_hashrate)
@@ -237,7 +255,7 @@ def main():
                                                                                                      w['hashrate_1h'],
                                                                                                      w['hashrate_6h'],
                                                                                                      w['hashrate_24h'],
-                                                                                                     w['hashes'],
+                                                                                                     int(w['hashes']),
                                                                                                      str(lastshareminutes) + " minutes ago"))
                                                   
                         if w['hashrate_1h'] == 0:
@@ -280,18 +298,7 @@ def main():
             
             num_of_spaces = maxlen - len('Total:') + 10
             print(dash*122)
-            '''
-            print("\nTotal: %s %5.2f %s %5.2f %s %5.2f %s %5.2f %s %10s" %(num_of_spaces*space,
-                                                                           round(float(cur_hr),2),
-                                                                           4*space,
-                                                                           round(float(onehr_hr),2),
-                                                                           4*space,
-                                                                           round(float(sixhr_hr),2),
-                                                                           4*space,
-                                                                           round(float(dayhr_hr),2),
-                                                                           4*space,
-                                                                           "{:,}".format(int(total_hashes))))
-            '''
+        
             print("\nTotal: %s %s %s %s %s %s %s %s %s %10s" %(num_of_spaces*space,
                                                                            cur_hr,
                                                                            2*space,
